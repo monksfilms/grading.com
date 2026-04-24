@@ -1075,5 +1075,6 @@ function StudioSection() {
 Object.assign(window, {
   FilmModal, StudioSection,
   colorGradePixel, generateCubeContent, downloadCube, drawLutPreview,
+  applyGrainEffect, applyVignetteEffect, applyBloomEffect, applyPrismEffect,
   FCP_EFFECTS_CATALOG, analyzeDescription
 });
