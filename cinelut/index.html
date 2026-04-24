@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CineLUT — Biblioteca de Color Grading</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,500;1,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">◈</span>
+        <div>
+          <h1>CineLUT</h1>
+          <p>Biblioteca de Color Grading Cinematográfico</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn-studio" id="btnStudio" title="Abrir Custom Grade Studio">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07M8.46 8.46a5 5 0 0 0 0 7.07"/></svg>
+          Studio
+        </button>
+        <button class="btn-upload" id="btnUpload" title="Gerar LUT a partir de imagem">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Gerar de Imagem
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- FILTRO DE CATEGORIAS -->
+  <nav class="cat-nav">
+    <div class="cat-nav-inner">
+      <button class="cat-btn active" data-cat="all">Todos <span class="count" id="count-all"></span></button>
+      <button class="cat-btn" data-cat="wes-anderson">Wes Anderson <span class="count" id="count-wes-anderson"></span></button>
+      <button class="cat-btn" data-cat="outros">Outros Diretores <span class="count" id="count-outros"></span></button>
+    </div>
+  </nav>
+
+  <!-- GRID DE FILMES -->
+  <main class="main-content">
+    <div class="films-grid" id="filmsGrid"></div>
+  </main>
+
+  <!-- MODAL DE DETALHES DO FILME -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal" id="modal">
+      <button class="modal-close" id="modalClose">✕</button>
+
+      <div class="modal-header">
+        <div class="modal-meta">
+          <span class="modal-year" id="modalYear"></span>
+          <span class="modal-director" id="modalDirector"></span>
+          <span class="modal-dp" id="modalDp"></span>
+        </div>
+        <h2 class="modal-title" id="modalTitle"></h2>
+        <p class="modal-description" id="modalDescription"></p>
+      </div>
+
+      <div class="modal-body">
+        <!-- Paleta de cores -->
+        <div class="section">
+          <h3 class="section-label">Paleta</h3>
+          <div class="palette-strip" id="modalPalette"></div>
+        </div>
+
+        <!-- Preview do LUT -->
+        <div class="section">
+          <h3 class="section-label">Preview do LUT</h3>
+          <div class="lut-preview-wrap">
+            <canvas id="lutPreviewCanvas" width="640" height="180"></canvas>
+            <p class="preview-hint">Gradiente de cor aplicado com o LUT</p>
+          </div>
+        </div>
+
+        <!-- Stills -->
+        <div class="section" id="stillsSection">
+          <h3 class="section-label">Stills de Referência</h3>
+          <div class="stills-grid" id="modalStills"></div>
+          <label class="add-still-btn" id="addStillLabel">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Adicionar Still
+            <input type="file" id="addStillInput" accept="image/*" multiple style="display:none"/>
+          </label>
+        </div>
+
+        <!-- Efeitos recomendados -->
+        <div class="section" id="effectsSection" style="display:none">
+          <h3 class="section-label">Efeitos Recomendados no Final Cut Pro</h3>
+          <p class="effects-note">O LUT cuida das cores. Aplique esses efeitos por cima no FCP para replicar o look completo:</p>
+          <div class="effects-list" id="modalEffects"></div>
+        </div>
+
+        <!-- Referência de vídeo -->
+        <div class="section">
+          <h3 class="section-label">Referência de Vídeo</h3>
+          <a class="video-ref-link" id="modalVideoRef" href="#" target="_blank" rel="noopener">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Ver trailer / referência
+          </a>
+        </div>
+      </div>
+
+      <!-- Download -->
+      <div class="modal-footer">
+        <a class="btn-download" id="modalDownload" href="#" download>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Baixar LUT (.cube)
+        </a>
+        <p class="download-hint">Compatível com Final Cut Pro, DaVinci Resolve, Premiere Pro</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE UPLOAD DE IMAGEM -->
+  <div class="modal-overlay" id="uploadOverlay">
+    <div class="modal modal-upload" id="uploadModal">
+      <button class="modal-close" id="uploadClose">✕</button>
+      <h2 class="modal-title">Gerar LUT de Imagem</h2>
+      <p class="modal-description">Suba uma imagem de referência e gere um LUT baseado nas cores dela.</p>
+
+      <div class="upload-zone" id="uploadZone">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <p>Arraste uma imagem ou <label class="inline-link" for="uploadInput">clique aqui</label></p>
+        <input type="file" id="uploadInput" accept="image/*" style="display:none"/>
+      </div>
+
+      <div class="upload-preview" id="uploadPreview" style="display:none">
+        <img id="uploadImg" alt="Referência" />
+        <canvas id="uploadCanvas" width="400" height="100" style="display:none"></canvas>
+        <div class="upload-info">
+          <div class="palette-strip" id="uploadPalette"></div>
+          <p class="upload-palette-label">Paleta extraída da imagem</p>
+        </div>
+      </div>
+
+      <div class="upload-footer" id="uploadFooter" style="display:none">
+        <input type="text" class="name-input" id="uploadName" placeholder="Nome do LUT (ex: meu-filme)" />
+        <button class="btn-download" id="btnGenerateCustom">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Gerar e Baixar LUT
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       CUSTOM GRADE STUDIO MODAL
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="studioOverlay">
+    <div class="modal modal-studio" id="studioModal">
+
+      <!-- Close -->
+      <button class="modal-close" id="studioClose">✕</button>
+
+      <!-- Studio Header -->
+      <div class="studio-header">
+        <div class="studio-title-row">
+          <span class="studio-icon">◈</span>
+          <div>
+            <h2 class="studio-title">Custom Grade Studio</h2>
+            <p class="studio-subtitle">Crie seu próprio look cinematográfico</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Two-column body -->
+      <div class="studio-body">
+
+        <!-- ── LEFT: Canvas Preview (45%) ────────────────────────── -->
+        <div class="studio-left">
+          <div class="studio-preview-header">
+            <div class="studio-view-tabs">
+              <button class="studio-tab active" data-view="after">Graded</button>
+              <button class="studio-tab" data-view="before">Original</button>
+              <button class="studio-tab" data-view="split">Split</button>
+            </div>
+          </div>
+
+          <div class="studio-canvas-wrap" id="studioCanvasWrap">
+            <!-- Upload prompt shown before image -->
+            <div class="studio-upload-prompt" id="studioUploadPrompt">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              <p>Faça upload de um frame de vídeo</p>
+              <label class="studio-upload-btn" for="studioImageInput">Escolher Imagem</label>
+              <input type="file" id="studioImageInput" accept="image/*" style="display:none"/>
+            </div>
+
+            <!-- Canvas (hidden until image loaded) -->
+            <canvas id="studioCanvas" style="display:none"></canvas>
+
+            <!-- Split drag handle -->
+            <div class="studio-split-handle" id="studioSplitHandle" style="display:none">
+              <div class="studio-split-line"></div>
+              <div class="studio-split-grip">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/><polyline points="12 5 5 12 12 19"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Change image link -->
+          <div class="studio-change-row" id="studioChangeRow" style="display:none">
+            <label class="studio-change-link" for="studioImageInput">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Trocar imagem
+            </label>
+            <span class="studio-image-name" id="studioImageName"></span>
+          </div>
+        </div>
+
+        <!-- ── RIGHT: Controls Panel (55%) ───────────────────────── -->
+        <div class="studio-right" id="studioRight">
+
+          <!-- 1. Description -->
+          <div class="studio-section">
+            <div class="studio-section-label">Descreva o Look</div>
+            <div class="studio-desc-row">
+              <textarea
+                id="studioDescInput"
+                class="studio-textarea"
+                placeholder='Ex: "quero tons quentes dourados com sombras frias e levemente desaturado"'
+                rows="3"
+              ></textarea>
+              <button class="studio-analyze-btn" id="studioAnalyzeBtn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                Analisar
+              </button>
+            </div>
+            <div class="studio-analysis-tags" id="studioAnalysisTags" style="display:none"></div>
+          </div>
+
+          <!-- 2. Color Sliders -->
+          <div class="studio-section">
+            <div class="studio-section-label">Parâmetros de Cor</div>
+            <div class="studio-sliders" id="studioSliders">
+              <!-- Temperatura -->
+              <div class="studio-slider-row">
+                <div class="studio-slider-header">
+                  <span class="studio-slider-label">Temperatura</span>
+                  <span class="studio-slider-value" id="val-temperature">0.0</span>
+                </div>
+                <div class="studio-slider-track">
+                  <div class="studio-slider-gradient" style="background: linear-gradient(to right, #4a8fff, #888, #ff8833)"></div>
+                  <input type="range" class="studio-range" id="sl-temperature" min="-1" max="1" step="0.01" value="0" />
+                </div>
+              </div>
+              <!-- Tint -->
+              <div class="studio-slider-row">
+                <div class="studio-slider-header">
+                  <span class="studio-slider-label">Tint</span>
+                  <span class="studio-slider-value" id="val-tint">0.0</span>
+                </div>
+                <div class="studio-slider-track">
+                  <div class="studio-slider-gradient" style="background: linear-gradient(to right, #cc44cc, #888, #44cc88)"></div>
+                  <input type="range" class="studio-range" id="sl-tint" min="-1" max="1" step="0.01" value="0" />
+                </div>
+              </div>
+              <!-- Saturação -->
+              <div class="studio-slider-row">
+                <div class="studio-slider-header">
+                  <span class="studio-slider-label">Saturação</span>
+                  <span class="studio-slider-value" id="val-saturation">1.0</span>
+                </div>
+                <div class="studio-slider-track">
+                  <div class="studio-slider-gradient" style="background: linear-gradient(to right, #777, #aaa, #ff4444)"></div>
+                  <input type="range" class="studio-range" id="sl-saturation" min="0" max="2" step="0.01" value="1" />
+                </div>
+              </div>
+              <!-- Contraste -->
+              <div class="studio-slider-row">
+                <div class="studio-slider-header">
+                  <span class="studio-slider-label">Contraste</span>
+                  <span class="studio-slider-value" id="val-contrast">0.0</span>
+                </div>
+                <div class="studio-slider-track">
+                  <div class="studio-slider-gradient" style="background: linear-gradient(to right, #555, #888, #fff)"></div>
+                  <input type="range" class="studio-range" id="sl-contrast" min="-1" max="1" step="0.01" value="0" />
+                </div>
+              </div>
+              <!-- Exposição -->
+              <div class="studio-slider-row">
+                <div class="studio-slider-header">
+                  <span class="studio-slider-label">Exposição</span>
+                  <span class="studio-slider-value" id="val-exposure">0.0</span>
+                </div>
+                <div class="studio-slider-track">
+                  <div class="studio-slider-gradient" style="background: linear-gradient(to right, #111, #555, #fff)"></div>
+                  <input type="range" class="studio-range" id="sl-exposure" min="-2" max="2" step="0.01" value="0" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Effects -->
+          <div class="studio-section">
+            <div class="studio-section-label">Efeitos</div>
+            <div class="studio-effects-grid" id="studioEffectsGrid">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+
+          <!-- 4. FCP Recipe -->
+          <div class="studio-section">
+            <div class="studio-section-label">Receita FCP</div>
+            <div class="studio-recipe-card" id="studioRecipeCard">
+              <div class="studio-recipe-lut-row">
+                <span class="studio-recipe-icon">🎬</span>
+                <div>
+                  <div class="studio-recipe-path">Aplicar LUT → Efeitos de Cor → LUT Personalizado</div>
+                  <div class="studio-recipe-value">
+                    <span id="recipeFileName">meu-grade.cube</span> | Intensidade: 100%
+                  </div>
+                </div>
+              </div>
+              <div class="studio-recipe-divider"></div>
+              <div id="studioRecipeEffects">
+                <p class="studio-recipe-empty">Ative efeitos acima para ver a receita completa.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. Footer actions -->
+          <div class="studio-footer">
+            <div class="studio-footer-left">
+              <input
+                type="text"
+                class="name-input"
+                id="studioLutName"
+                placeholder="Nome do LUT (ex: meu-grade)"
+                value="meu-grade"
+              />
+            </div>
+            <div class="studio-footer-right">
+              <button class="studio-btn-secondary" id="studioCopyRecipe">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copiar Receita
+              </button>
+              <button class="btn-download" id="studioDownloadLut">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Baixar LUT .cube
+              </button>
+            </div>
+          </div>
+
+        </div><!-- /studio-right -->
+      </div><!-- /studio-body -->
+    </div><!-- /modal-studio -->
+  </div><!-- /studioOverlay -->
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
