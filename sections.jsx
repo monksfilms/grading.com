@@ -1,4 +1,4 @@
-// sections.jsx — Hero, What, LUTs, Studio, Compat, CTA, Footer
+// sections.jsx — Hero, What, LUTs (real film library), Studio, Compat, CTA, Footer
 
 const { CinemaFrame, LOOKS, Reveal, useParallax } = window;
 
@@ -23,7 +23,7 @@ function Nav() {
         <a href="#compat">Compatibilidade</a>
         <a href="#sobre">Sobre</a>
       </div>
-      <a href="#luts" className="nav-cta">Explorar biblioteca</a>
+      <a href="#studio" className="nav-cta">Abrir Studio</a>
     </nav>
   );
 }
@@ -47,7 +47,7 @@ function Hero() {
         <Reveal>
           <div className="eyebrow">
             <span className="dot"></span>
-            Biblioteca de Color Grading · v3.2
+            Biblioteca de Color Grading · 15 filmes icônicos
           </div>
         </Reveal>
         <Reveal delay={80}>
@@ -58,8 +58,8 @@ function Hero() {
         </Reveal>
         <Reveal delay={160}>
           <p className="hero-sub">
-            Centenas de LUTs inspirados em filmes icônicos. Estúdio de grade personalizado.
-            Receitas prontas para Final Cut, Resolve e Premiere. Tudo em um só lugar.
+            LUTs inspirados em filmes icônicos. Estúdio de grade personalizado.
+            Receitas prontas para Final Cut, Resolve e Premiere.
           </p>
         </Reveal>
         <Reveal delay={220}>
@@ -107,7 +107,7 @@ function What() {
           <Reveal delay={140}>
             <p>
               Catalogamos, analisamos e reconstruímos as paletas dos filmes mais marcantes
-              da história. Cada look vira um LUT `.cube` pronto para usar, acompanhado
+              da história. Cada look vira um LUT <code>.cube</code> pronto para usar, acompanhado
               da receita completa de efeitos para reproduzir o visual no seu editor.
             </p>
             <p>
@@ -117,8 +117,8 @@ function What() {
           <Reveal delay={200}>
             <div className="what-stats">
               <div className="what-stat">
-                <div className="n">420+</div>
-                <div className="l">LUTs<br/>catalogados</div>
+                <div className="n">15</div>
+                <div className="l">Filmes<br/>catalogados</div>
               </div>
               <div className="what-stat">
                 <div className="n">3</div>
@@ -159,73 +159,77 @@ function What() {
   );
 }
 
-// ——— LUTS GRID ———
-function LutCard({ look, title, director, density }) {
+// ——— FILM CARD (real data) ———
+function FilmCard({ film, onClick, density }) {
   const ref = React.useRef(null);
-  useParallax(ref, { zoom: 0.14, translate: 0 });
+  useParallax(ref, { zoom: 0.12, translate: 0 });
+
+  const paletteGrad = `linear-gradient(135deg, ${film.palette[0]}, ${film.palette[2]}, ${film.palette[4] || film.palette[0]})`;
+
+  // Category label
+  const catLabel = film.category === 'wes-anderson' ? 'Wes Anderson' : film.director;
+
   return (
     <Reveal>
-      <div className="lut-card" ref={ref}>
+      <div className="lut-card" ref={ref} onClick={() => onClick(film)} style={{ cursor: 'pointer' }}>
         <div className="frame-inner">
-          <CinemaFrame
-            gradient={look.gradient}
-            label={null}
-            code={null}
-            bars={density !== "compact"}
-            style={{ position: "absolute", inset: 0 }}
-          />
+          {film.stills && film.stills.length > 0 ? (
+            <img
+              src={film.stills[0]}
+              alt={film.title}
+              className="lut-card-still"
+              loading="lazy"
+            />
+          ) : (
+            <div className="lut-card-gradient" style={{ background: paletteGrad }} />
+          )}
         </div>
-        <div className="overlay"></div>
+        <div className="overlay" />
+        <div className="lut-card-palette">
+          {film.palette.map((c, i) => (
+            <span key={i} style={{ background: c }} />
+          ))}
+        </div>
         <div className="lut-card-meta">
           <div>
-            <h3>{title}</h3>
-            <div className="sub">{director}</div>
+            <h3>{film.title}</h3>
+            <div className="sub">{film.year} · {catLabel}</div>
           </div>
-          <span className="pill">{look.code}</span>
+          <span className="pill">.cube</span>
         </div>
       </div>
     </Reveal>
   );
 }
 
+// ——— LUTS GRID (real film library) ———
 function Luts({ density }) {
   const [filter, setFilter] = React.useState("Todos");
-  const filters = ["Todos", "Cinema clássico", "Contemporâneo", "Ação", "Drama", "Neon"];
+  const [selectedFilm, setSelectedFilm] = React.useState(null);
 
-  // Original category labels — generic color-grading archetypes, not tied
-  // to any specific copyrighted work.
-  const cards = [
-    { look: LOOKS.tealOrange, title: "Bay Orange", director: "Ação · Blockbuster", cat: "Ação" },
-    { look: LOOKS.pastelSymmetry, title: "Pastel Symmetry", director: "Drama · Simetria", cat: "Drama" },
-    { look: LOOKS.neonNoir, title: "Neon Noir", director: "Thriller · Neon", cat: "Neon" },
-    { look: LOOKS.desertWarm, title: "Desert Warm", director: "Western · Épico", cat: "Cinema clássico" },
-    { look: LOOKS.kodakWarm, title: "Kodak 5219", director: "Film stock · 35mm", cat: "Cinema clássico" },
-    { look: LOOKS.cyberRain, title: "Cyber Rain", director: "Sci-fi · Distópico", cat: "Neon" },
-    { look: LOOKS.bleachBypass, title: "Bleach Bypass", director: "Guerra · Realismo", cat: "Drama" },
-    { look: LOOKS.moonlitBlue, title: "Moonlit Blue", director: "Noturno · Intimista", cat: "Drama" },
-    { look: LOOKS.crimsonNight, title: "Crimson Night", director: "Terror · Psicológico", cat: "Contemporâneo" },
-    { look: LOOKS.goldenHour, title: "Golden Hour", director: "Drama · Romance", cat: "Contemporâneo" },
-    { look: LOOKS.greenMist, title: "Forest Mist", director: "Fantasia · Épica", cat: "Cinema clássico" },
-    { look: LOOKS.sovietGray, title: "Silver Halide", director: "Preto & branco", cat: "Cinema clássico" },
-  ];
+  const filters = ["Todos", "Wes Anderson", "Outros"];
 
-  const shown = filter === "Todos" ? cards : cards.filter((c) => c.cat === filter);
+  const films = window.FILMS || [];
+
+  const shown = filter === "Todos" ? films
+    : filter === "Wes Anderson" ? films.filter(f => f.category === 'wes-anderson')
+    : films.filter(f => f.category === 'outros');
 
   return (
     <section className="luts" id="luts">
       <div className="section-head center">
         <Reveal>
-          <div className="eyebrow"><span className="dot"></span>Biblioteca</div>
+          <div className="eyebrow"><span className="dot"></span>Biblioteca de filmes</div>
         </Reveal>
         <Reveal delay={80}>
           <h2 className="display section-title">
-            Doze <span className="accent">atmosferas</span>.<br />
-            Infinitos filmes.
+            Quinze <span className="accent">atmosferas</span>.<br />
+            Um LUT para cada.
           </h2>
         </Reveal>
         <Reveal delay={140}>
           <p className="section-lede">
-            Cada LUT vem com stills de referência, paleta extraída e a receita
+            Cada LUT vem com still de referência, paleta extraída e receita
             completa de efeitos para replicar o look no seu editor.
           </p>
         </Reveal>
@@ -245,118 +249,41 @@ function Luts({ density }) {
         </div>
       </Reveal>
 
-      <div className="luts-grid" style={density === "compact" ? { gap: 16 } : density === "comfy" ? { gap: 48 } : undefined}>
-        {shown.map((c, i) => (
-          <LutCard key={c.title} look={c.look} title={c.title} director={c.director} density={density} />
+      <div
+        className="luts-grid"
+        style={
+          density === "compact" ? { gap: 16 }
+          : density === "comfy" ? { gap: 48 }
+          : undefined
+        }
+      >
+        {shown.map((film) => (
+          <FilmCard
+            key={film.id}
+            film={film}
+            onClick={setSelectedFilm}
+            density={density}
+          />
         ))}
       </div>
 
       <div className="luts-footer">
         <Reveal>
-          <a className="btn btn-ghost" href="#">Ver todos os 420 LUTs →</a>
+          <a className="btn btn-ghost" href="#studio">Criar look personalizado no Studio →</a>
         </Reveal>
       </div>
+
+      {/* Film detail modal */}
+      {selectedFilm && (
+        <window.FilmModal film={selectedFilm} onClose={() => setSelectedFilm(null)} />
+      )}
     </section>
   );
 }
 
-// ——— STUDIO ———
+// ——— STUDIO (real interactive) ———
 function Studio() {
-  const previewRef = React.useRef(null);
-  useParallax(previewRef, { zoom: 0.06, translate: 30 });
-
-  const sliders = [
-    { lbl: "Temperatura", val: "+12", fill: 62 },
-    { lbl: "Tint", val: "-04", fill: 46 },
-    { lbl: "Saturação", val: "1.18", fill: 72 },
-    { lbl: "Contraste", val: "+0.22", fill: 68 },
-    { lbl: "Exposição", val: "-0.15", fill: 42 },
-  ];
-
-  return (
-    <section className="studio" id="studio">
-      <div className="studio-header">
-        <div>
-          <Reveal>
-            <div className="eyebrow"><span className="dot"></span>LUT Studio</div>
-          </Reveal>
-          <Reveal delay={80}>
-            <h2 className="display section-title">
-              Crie o seu próprio <span className="accent">look.</span>
-            </h2>
-          </Reveal>
-        </div>
-        <Reveal delay={140}>
-          <p className="section-lede" style={{ maxWidth: 380, textAlign: "right" }}>
-            Suba um frame, descreva o visual com palavras, ajuste com sliders.
-            Exportamos o `.cube` e a receita completa para o seu editor.
-          </p>
-        </Reveal>
-      </div>
-
-      <Reveal delay={100}>
-        <div className="studio-demo">
-          <div className="studio-preview" ref={previewRef}>
-            <div className="studio-preview-label">GRADED · SPLIT VIEW</div>
-            <div className="studio-preview-dots">
-              <span></span><span></span><span></span>
-            </div>
-            <div className="studio-preview-frame" style={{ clipPath: "inset(0 50% 0 0)" }}>
-              <CinemaFrame
-                gradient={LOOKS.flatLog.gradient}
-                bg="#2a2824"
-                label={null}
-                code={null}
-                style={{ position: "absolute", inset: 0 }}
-              />
-            </div>
-            <div className="studio-preview-frame" style={{ clipPath: "inset(0 0 0 50%)" }}>
-              <CinemaFrame
-                gradient={LOOKS.tealOrange.gradient}
-                label={null}
-                code={null}
-                style={{ position: "absolute", inset: 0 }}
-              />
-            </div>
-            <div className="studio-preview-split" style={{ left: "50%" }}></div>
-          </div>
-
-          <aside className="studio-sidebar">
-            <div>
-              <h4>Parâmetros de cor</h4>
-              <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 14 }}>
-                {sliders.map((s) => (
-                  <div className="ctrl" key={s.lbl}>
-                    <div className="ctrl-head">
-                      <span className="lbl">{s.lbl}</span>
-                      <span className="val">{s.val}</span>
-                    </div>
-                    <div className="ctrl-bar">
-                      <div className="fill" style={{ width: `${s.fill}%` }}></div>
-                      <div className="knob" style={{ left: `${s.fill}%` }}></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="studio-recipe">
-              <h4 style={{ marginBottom: 10 }}>Receita FCP</h4>
-              <div className="path">
-                Aplicar LUT <span className="arrow">→</span> Efeitos de Cor <span className="arrow">→</span> LUT Personalizado
-              </div>
-              <div style={{ fontFamily: "var(--mono)", fontSize: 10.5, color: "var(--ink-mute)", marginTop: 8 }}>
-                meu-grade.cube · Intensidade 100%
-              </div>
-              <button className="studio-btn">
-                Baixar .cube
-              </button>
-            </div>
-          </aside>
-        </div>
-      </Reveal>
-    </section>
-  );
+  return <window.StudioSection />;
 }
 
 // ——— COMPAT ———
